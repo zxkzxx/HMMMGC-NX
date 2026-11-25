@@ -1,0 +1,336 @@
+# Native runtime / Runtime nativo
+
+[Español](#español) · [English](#english)
+
+---
+
+## Español
+
+El runtime que corre el juego sin Dolphin. El traductor de
+[WiiCompiled](https://github.com/patchzyy/wiicompiled) convierte el código de
+`main.dol` en C++; este runtime le da lo que el código traducido espera de la
+consola: la memoria, los registros especiales del CPU, el hardware y las partes
+del sistema operativo que no pueden ser código traducido. El estado y los
+resultados están en [docs/NATIVE_RUNTIME.md](../docs/NATIVE_RUNTIME.md).
+
+### Compilar
+
+```sh
+scripts/build_native_runtime.sh
+build/native/runtime/hmmm-native --disc orig/G4AEE9 --symbols config/G4AEE9/symbols.txt
+```
+
+Hace falta Linux con git, el SDK de .NET 8, clang, cmake, ninja y el disco
+extraído en `orig/G4AEE9` (`tools/extract_disc.py`). El script baja WiiCompiled
+en la versión que usa el runtime, traduce el juego en `build/native/translation`
+y compila. El C++ traducido sale de tu disco: no se sube nunca.
+
+La imagen sale de [aurora](https://github.com/encounter/aurora) (MIT), que
+viene en la copia de WiiCompiled. Al configurar el runtime, aurora baja Dawn ya
+compilado, SDL3 y unas bibliotecas pequeñas; para la ventana, SDL necesita los
+paquetes de desarrollo de X11 (o Wayland) del sistema, y para dibujar hace
+falta un controlador de Vulkan. Donde no se puede bajar nada, los argumentos
+que se le pasen al script van a cmake y pueden apuntar a copias locales:
+`-DDAWN_SOURCE_DIR=… -DDAWN_BUILD_DIR=…` (un Dawn compilado desde su código) y
+`-DFETCHCONTENT_SOURCE_DIR_<NOMBRE>=…` para las demás (SDL, FMT, XXHASH,
+IMGUI, TRACY, ABSEIL-CPP, NLOHMANN_JSON).
+
+Opciones de `hmmm-native`: `--watchdog <segundos>` imprime cada tanto dónde
+está el juego (0 lo apaga), `--user-folder <carpeta>` cambia la carpeta del
+jugador (ver abajo), y `--mods <id,id>` (o `--mods none`) dice qué mods de los
+compilados dentro se activan. Mientras se mantiene `Tab` apretado, todo el juego va al 300 % (el turbo), y el título de la
+ventana muestra la velocidad. La resolución interna sigue al tamaño de la ventana
+(Alt+Enter cambia a pantalla completa); `--resolution-scale <n>` la fija en n
+veces la de la consola (6 es casi 4K) y la reduce a la ventana, lo que suaviza
+los bordes, y `--fullscreen 1` empieza en pantalla completa. El mod `far_camera` deja alejar
+la cámara más allá del tope del juego con la cruceta, mientras se camina al
+aire libre (en la pantalla de título, las escenas y los cuartos queda la cámara
+del juego, `game_scene.h`; `graphics/far_camera.h`), y `--widescreen 1`
+da una imagen panorámica: el 3D muestra más a los lados y los menús se estiran.
+`--frame-rate 60` (o `120`) muestra 60 (o 120) cuadros por segundo: el juego
+dibuja 30 y aurora hace los demás en medio (`graphics/frame_interpolation.h`).
+`--volume <0-100>` baja el sonido (0 lo silencia). Lo que la línea de comandos no dice se lee del `settings.json` del launcher
+(`HarvestMoonMM/settings.json` en la carpeta de datos del sistema, o el que diga
+`--settings <archivo>`; con `--user-folder`, el de esa carpeta), así que el
+juego arrancado a mano juega como lo dejó el launcher; sin ese archivo, cada
+opción vale lo de siempre (ningún mod, 100 %, la ventana, 4:3,
+30 cuadros, todo el volumen), `player_options.h`. En Windows, `Launcher.bat`
+(`packaging/windows/native/`) abre una ventana para activar los mods, elegir la
+velocidad del personaje y la del juego, la resolución, la pantalla
+completa, la panorámica y los cuadros por segundo, y jugar; guarda lo elegido en el mismo `settings.json`
+que la versión ModernGekko. Con `HMMM_NATIVE_READABLE_REGISTERS=1` corre bajo un
+depurador como gdb (ver `fault_handler.h`).
+
+### Menú de opciones (F10)
+
+Dentro del juego, F10 (o el botón Select del control, si el juego no lo usa)
+abre un menú de opciones (`in_game_menu.h`, con lo de `shared/`): la
+resolución interna (como la ventana, 480p, 720p, 1080p o 1440p, que el archivo
+guarda como `internalResolution`), la pantalla completa, la pantalla ancha, los
+cuadros por segundo, el contador de cuadros por segundo y el
+volumen, que cambian al momento, los mods (con un interruptor cada uno; el
+cambio se aplica al reiniciar el juego) y la pantalla de controles (donde se elige qué tecla, botón del ratón o botón del control juega cada parte del GameCube, `controls_editor.h`; se guarda en `controls.json`, que también edita el launcher, y se le da a aurora al arrancar y al conectar un control), en una
+barra sencilla arriba con menús desplegables y el juego visible detrás (la resolución, Imagen, Ajustes del control, Volumen y Mods). Lo
+que cambia se guarda en `settings.json` al cerrar el menú, y el launcher lo lee
+al volver. Mientras está abierto, el juego sigue pero no recibe nada de los
+controles ni del teclado, y al cerrarlo tampoco hasta que se sueltan los
+botones que lo cerraron. Se mueve con el ratón, las flechas o el control;
+Escape o el botón que es B en el juego regresa, y los botones de hombro del
+control (LB y RB) cambian entre Opciones y Controles. «Salir del juego» pregunta antes, porque lo
+que no se guardó en el juego se pierde. Para que no corra el reloj del juego, abre antes su propio
+menú (Start).
+
+### Idioma de los textos
+
+El disco americano trae los textos de los diálogos en inglés, español, francés,
+alemán e italiano (`message_e`, `message_s`, `message_f`, `message_g` y
+`message_i`), pero su programa solo abre los de inglés. El idioma se elige en
+las opciones del launcher o en el menú F10 (Idioma), y vale desde la próxima vez
+que se abre el juego. Con `"language"` en `settings.json` (`en`, `es`, `fr`,
+`de` o `it`), `game_language.h` cambia esas
+rutas en la memoria del juego antes de arrancar y el juego abre los del idioma
+elegido. Lo que el programa trae dentro (los menús, los nombres de los objetos)
+y las imágenes con palabras siguen en inglés: el disco no los tiene en otro
+idioma.
+
+### Partidas guardadas
+
+El runtime guarda lo del jugador en su carpeta: `HarvestMoonMM\Native` dentro
+de `%LOCALAPPDATA%` en Windows, y `~/.local/share/HarvestMoonMM/Native` en
+Linux. La memory card del slot A es la carpeta `USA/Card A`, con un archivo
+`.gci` por cada archivo de la tarjeta, como en las carpetas GCI de Dolphin.
+
+Mientras el runtime nativo esté en desarrollo usa su propia tarjeta, aparte de
+la de la versión sobre ModernGekko (`HarvestMoonMM\GC\USA\Card A`), para no
+dañar tus partidas. Para probar una, copia `E9-G4AE-HARVESTMOON.gci` de esa
+carpeta a la del runtime nativo; la original no se toca.
+
+### Sonido
+
+El sonido sale por el dispositivo de reproducción por defecto, por medio de
+SDL. Si no hay ninguno, el juego sigue sin sonido. En una máquina sin tarjeta
+de sonido, `SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE=<archivo>` lo
+escribe a un archivo: estéreo de 16 bits sin encabezado, a la frecuencia del
+dispositivo que dice el registro (44.1 kHz si nada dice otra cosa).
+
+### Controles
+
+Un gamepad conectado a la PC es el control 1. Si no hay ninguno, el teclado
+juega como control 1, con las mismas teclas que Dolphin trae de fábrica:
+
+| Control de GameCube | Tecla |
+|---|---|
+| Stick de control | Flechas |
+| Stick C | I, J, K, L |
+| Cruceta | T, F, G, H |
+| A, B, X, Y | X, Z, C, S |
+| Z | D |
+| L, R | Q, W |
+| START | Enter |
+
+### Qué hay en `src/`
+
+| Archivo | Qué hace |
+|---|---|
+| `main.cpp` | Arranca todo y salta al punto de entrada del juego. |
+| `console_boot.*` | Lo que dejan el ROM de arranque y el apploader: los datos de la parte baja de la memoria, la tabla de archivos (FST) y bi2. |
+| `game_disc.*` | Lee el disco por desplazamiento, como la unidad: de su imagen (`.iso`, `.gcm`) o de su forma extraída. |
+| `guest_memory.*` | El espacio de direcciones del juego (4 GiB planos), los accesos lentos y la memoria propia del runtime (en 0x81800000). |
+| `cpu_registers.*` | Registros especiales, base de tiempo, decrementador, DMA de la caché bloqueada. |
+| `function_registry.cpp` | Qué función del host corre en cada dirección del juego. |
+| `native_functions.h` | Cómo se declara un reemplazo nativo de una función del juego. |
+| `abi_hooks.cpp` | El "gather pipe" de gráficos y unos ganchos de los encabezados de WiiCompiled. |
+| `os/guest_os.*` | Interrupciones y el planificador del OS, en nativo. |
+| `hardware/` | Un archivo por dispositivo: PI, VI, DSP (con el DMA de audio), DVD, SI, EXI, AI, la memoria de audio (ARAM) y el estado del chip gráfico. |
+| `audio/dsp_programs.*` | Lo que corre en el DSP: su ROM de arranque, y el programa que carga, reconocido por un hash de su código. |
+| `audio/ax_microcode.*`, `audio/ax_voice.*` | El programa de AX del DSP en C++: las listas de comandos y las voces (decodificar, convertir a 32 kHz, mezclar). |
+| `audio/audio_output.*` | La salida de sonido por SDL, con un margen y un control de velocidad. |
+| `graphics/aurora_host.*` | La ventana y el dispositivo gráfico, por medio de aurora; un cuadro termina en cada copia a la pantalla. |
+| `graphics/gx_draw.*`, `graphics/vertex_layout.*` | Las primitivas y las listas de visualización del juego, entregadas a aurora. |
+| `graphics/gx_natives_*.cpp` | Las funciones de GX del juego reemplazadas por las de aurora, por tema (geometría, transformaciones, luces, texturas, TEV, píxeles, copias). |
+| `graphics/guest_values.h` | Lee los valores que el juego pasa por dirección (colores, matrices). |
+| `game_scene.*`, `graphics/camera_view.*`, `graphics/main_view.*`, `graphics/map_draw_range.*`, `graphics/character_range.*`, `graphics/shadow_range.*`, `crop_grid.*`, `ground_mesh.*` | La panorámica y el zoom: cuándo aplica el zoom (al caminar al aire libre), las proyecciones, cuánto más lejos ve la cámara que la del juego, y lo que el juego dibuja de más por eso (las piezas del mapa, los personajes, el área de las sombras, la cuadrícula de cultivos de la granja y su malla de tierra labrada). |
+| `input/pad_natives.cpp` | Las funciones de control del juego (PAD) reemplazadas por las de aurora: gamepads por SDL y el teclado. |
+| `storage/card_natives.cpp` | Las funciones de memory card del juego (CARD) reemplazadas por las de aurora: una carpeta de archivos `.gci`. |
+| `player_folder.*` | La carpeta del jugador: la memory card y los ajustes y cachés de aurora. |
+| `mods/native_mods.*` | Los mods de `mods/`, compilados dentro: lee sus descriptores y corre sus *patch* y *hook* donde `tools/insert_mod_hooks.py` marcó el código traducido. `../mod_api/` es el header que usan en lugar del de ModernGekko ([mods/README.md](../mods/README.md)). |
+| `fault_handler.*`, `guest_symbols.*`, `runtime_log.h` | Diagnóstico: dónde está el juego cuando algo falla. |
+
+Los encabezados de la ABI que comparten el código traducido y el runtime
+(`guest_abi/`) y dos archivos de ayuda (`fpu_helpers.cpp`, `ppc_quantized.cpp`)
+vienen de WiiCompiled, que es GPL-3.0 como este proyecto, y aurora viene en su
+copia; se compilan desde ahí, no se copian aquí. `audio/ax_microcode.*` y
+`audio/ax_voice.*` están portados de la emulación de alto nivel de AX de
+Dolphin (GPL-2.0-or-later), con la misma aritmética.
+
+El estilo del código (formato con `clang-format`, nombres revisados con
+`clang-tidy`) está en [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+---
+
+## English
+
+The runtime that runs the game without Dolphin.
+[WiiCompiled](https://github.com/patchzyy/wiicompiled)'s translator turns the
+code of `main.dol` into C++; this runtime gives it what the translated code
+expects from the console: memory, the CPU's special registers, the hardware and
+the parts of the operating system that cannot be translated code. The status
+and the results are in [docs/NATIVE_RUNTIME.md](../docs/NATIVE_RUNTIME.md).
+
+### Building
+
+```sh
+scripts/build_native_runtime.sh
+build/native/runtime/hmmm-native --disc orig/G4AEE9 --symbols config/G4AEE9/symbols.txt
+```
+
+It needs Linux with git, the .NET 8 SDK, clang, cmake, ninja and the disc
+extracted in `orig/G4AEE9` (`tools/extract_disc.py`). The script downloads
+WiiCompiled at the version the runtime uses, translates the game into
+`build/native/translation` and compiles. The translated C++ comes from your
+disc: it is never committed.
+
+The picture comes from [aurora](https://github.com/encounter/aurora) (MIT),
+which comes in WiiCompiled's checkout. When the runtime is configured, aurora
+downloads Dawn already built, SDL3 and a few small libraries; for the window,
+SDL needs the system's X11 (or Wayland) development packages, and drawing
+needs a Vulkan driver. Where nothing can be downloaded, the arguments given to
+the script go to cmake and can point at local copies:
+`-DDAWN_SOURCE_DIR=… -DDAWN_BUILD_DIR=…` (a Dawn built from source) and
+`-DFETCHCONTENT_SOURCE_DIR_<NAME>=…` for the others (SDL, FMT, XXHASH, IMGUI,
+TRACY, ABSEIL-CPP, NLOHMANN_JSON).
+
+Options of `hmmm-native`: `--watchdog <seconds>` prints where the game is every
+so often (0 turns it off), `--user-folder <folder>` changes the player folder
+(see below), and `--mods <id,id>` (or `--mods none`) says which of the mods
+compiled in are turned on. While `Tab` is held the whole game goes at 300% (the turbo), and the window's title shows
+the speed. The internal resolution follows the window's size (Alt+Enter
+switches to full screen); `--resolution-scale <n>` fixes it at n times the
+console's (6 is nearly 4K) and scales it down to the window, which smooths the
+edges, and `--fullscreen 1` starts in full screen. The `far_camera` mod lets the D-pad
+pull the camera back past the game's limit while walking outdoors (`graphics/far_camera.h`)
+(the title screen, the cutscenes and the rooms keep the game's camera,
+`game_scene.h`), and `--widescreen 1`
+gives a widescreen picture: the 3D shows more at the sides and the menus are
+stretched. `--frame-rate 60` (or `120`) shows 60 (or 120) frames a second: the
+game draws 30 and aurora makes the rest in between
+(`graphics/frame_interpolation.h`). `--volume <0-100>` lowers the sound (0
+mutes it). What the command line leaves out is read
+from the launcher's `settings.json` (`HarvestMoonMM/settings.json` in the
+system's data folder, or the one `--settings <file>` names; with
+`--user-folder`, the one in that folder), so the game started by hand plays as
+the launcher left it; without that file, each option is as always (no mod, 100%, the window's resolution, 4:3, 30 frames, full volume), `player_options.h`.
+On Windows, `Launcher.bat`
+(`packaging/windows/native/`) opens a window to turn the mods on, choose the
+speed of the character and of the game, the resolution, full screen,
+widescreen and frames per second, and
+play; it keeps the choices in the same `settings.json` as the ModernGekko
+version. With `HMMM_NATIVE_READABLE_REGISTERS=1` it runs under a
+debugger such as gdb (see `fault_handler.h`).
+
+### Options menu (F10)
+
+In the game, F10 (or the controller's Select button, when the game does not
+use it) opens an options menu (`in_game_menu.h`, with what is in `shared/`):
+the internal resolution (as the window, 480p, 720p, 1080p or 1440p, which the
+file keeps as `internalResolution`), full screen, widescreen, frames per
+second, the frame counter and the volume, which change at once, the mods
+(a switch each; the change applies when the game is restarted) and the controls
+screen (where the key, mouse button or controller button that plays each part of
+the GameCube is chosen, `controls_editor.h`; aurora keeps it in
+kept in `controls.json`, which the launcher edits too, and given to aurora at the start and when a controller is connected), in a plain bar at the top with drop-down menus and the game visible
+behind (the resolution, Picture, Controller settings, Volume and Mods). What changes is kept in
+`settings.json` when the menu closes, and the launcher reads it when it comes
+back. While it is open the game goes on but gets nothing from the controllers
+or the keyboard, and after it closes neither, until the buttons that closed it
+are let go. It is used with the mouse, the arrow keys or a controller; Escape
+or the button that is B in the game goes back, and the controller's shoulder
+buttons (LB and RB) switch between Options and Controls. "Quit the game" asks first,
+because what was not saved in the game is lost. To keep the
+game's clock from running, open its own menu (Start) first.
+
+### Language of the text
+
+The American disc has the text of the dialogues in English, Spanish, French,
+German and Italian (`message_e`, `message_s`, `message_f`, `message_g` and
+`message_i`), but its program only opens the English ones. The language is
+chosen in the launcher's options or in the F10 menu (Language), and counts from
+the next time the game is opened. With
+`"language"` in `settings.json` (`en`, `es`, `fr`, `de` or `it`),
+`game_language.h` changes those paths in the game's memory before it starts,
+and the game opens the files of the chosen language. What the program holds
+inside (the menus, the names of the items) and the pictures with words stay in
+English: the disc does not have them in another language.
+
+### Saved games
+
+The runtime keeps the player's things in its folder: `HarvestMoonMM\Native`
+in `%LOCALAPPDATA%` on Windows, and `~/.local/share/HarvestMoonMM/Native` on
+Linux. The memory card in slot A is the folder `USA/Card A`, with one `.gci`
+file for each file on the card, as in Dolphin's GCI folders.
+
+While the native runtime is in progress it uses a card of its own, apart from
+the one of the version on ModernGekko (`HarvestMoonMM\GC\USA\Card A`), so
+that it cannot damage your saves. To try one, copy `E9-G4AE-HARVESTMOON.gci`
+from that folder to the native runtime's; the original is not touched.
+
+### Sound
+
+The sound comes out of the default playback device, through SDL. If there is
+none, the game goes on without sound. On a machine without a sound card,
+`SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE=<file>` writes it to a file:
+16-bit stereo with no header, at the device's rate that the log gives
+(44.1 kHz unless something says otherwise).
+
+### Controls
+
+A gamepad connected to the PC is controller 1. If there is none, the keyboard
+plays as controller 1, with the same keys that Dolphin has by default:
+
+| GameCube controller | Key |
+|---|---|
+| Control Stick | Arrow keys |
+| C Stick | I, J, K, L |
+| D-Pad | T, F, G, H |
+| A, B, X, Y | X, Z, C, S |
+| Z | D |
+| L, R | Q, W |
+| START | Enter |
+
+### What is in `src/`
+
+| File | What it does |
+|---|---|
+| `main.cpp` | Starts everything and jumps to the game's entry point. |
+| `console_boot.*` | What the boot ROM and the apploader leave: the low-memory globals, the file system table (FST) and bi2. |
+| `game_disc.*` | Reads the disc by offset, as the drive does: from its image (`.iso`, `.gcm`) or from its extracted form. |
+| `guest_memory.*` | The game's address space (a flat 4 GiB), the slow accesses and the runtime's own memory (at 0x81800000). |
+| `cpu_registers.*` | Special registers, time base, decrementer, the locked cache's DMA. |
+| `function_registry.cpp` | Which host function runs at each address of the game. |
+| `native_functions.h` | How a native replacement of a game function is declared. |
+| `abi_hooks.cpp` | The graphics gather pipe and a few hooks of WiiCompiled's headers. |
+| `os/guest_os.*` | Interrupts and the OS scheduler, natively. |
+| `hardware/` | One file per device: PI, VI, DSP (with the audio DMA), DVD, SI, EXI, AI, the audio memory (ARAM) and the graphics chip's status. |
+| `audio/dsp_programs.*` | What runs on the DSP: its boot ROM, and the program it loads, recognized by a hash of its code. |
+| `audio/ax_microcode.*`, `audio/ax_voice.*` | The DSP's AX program in C++: the command lists and the voices (decode, convert to 32 kHz, mix). |
+| `audio/audio_output.*` | The sound output through SDL, with a margin and a speed control. |
+| `graphics/aurora_host.*` | The window and the graphics device, through aurora; a frame ends at each copy to the screen. |
+| `graphics/gx_draw.*`, `graphics/vertex_layout.*` | The game's primitives and display lists, handed to aurora. |
+| `graphics/gx_natives_*.cpp` | The game's GX functions replaced by aurora's, by topic (geometry, transforms, lights, textures, TEV, pixels, copies). |
+| `graphics/guest_values.h` | Reads the values the game passes by address (colors, matrices). |
+| `game_scene.*`, `graphics/camera_view.*`, `graphics/main_view.*`, `graphics/map_draw_range.*`, `graphics/character_range.*`, `graphics/shadow_range.*`, `crop_grid.*`, `ground_mesh.*` | Widescreen and zoom: when the zoom applies (walking outdoors), the projections, how much farther the camera sees than the game's, and how much more the game draws for it (the map's pieces, the characters, the area of the shadows, the farm's grid of crops and its mesh of tilled soil). |
+| `input/pad_natives.cpp` | The game's controller functions (PAD) replaced by aurora's: gamepads through SDL, and the keyboard. |
+| `storage/card_natives.cpp` | The game's memory card functions (CARD) replaced by aurora's: a folder of `.gci` files. |
+| `player_folder.*` | The player folder: the memory card, and aurora's settings and caches. |
+| `mods/native_mods.*` | The mods of `mods/`, compiled in: reads their descriptors and runs their patches and hooks where `tools/insert_mod_hooks.py` marked the translated code. `../mod_api/` is the header they use instead of ModernGekko's ([mods/README.md](../mods/README.md)). |
+| `fault_handler.*`, `guest_symbols.*`, `runtime_log.h` | Diagnostics: where the game is when something fails. |
+
+The ABI headers that the translated code and the runtime share (`guest_abi/`)
+and two helper files (`fpu_helpers.cpp`, `ppc_quantized.cpp`) come from
+WiiCompiled, which is GPL-3.0 like this project, and aurora comes in its
+checkout; they are compiled from there, not copied here. `audio/ax_microcode.*`
+and `audio/ax_voice.*` are ported from Dolphin's high-level emulation of AX
+(GPL-2.0-or-later), with the same arithmetic.
+
+The code style (formatting with `clang-format`, names checked with
+`clang-tidy`) is in [CONTRIBUTING.md](../CONTRIBUTING.md).

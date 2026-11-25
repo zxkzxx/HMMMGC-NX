@@ -1,0 +1,303 @@
+{
+  "$schema": "https://recomplauncher.com/schema/recomplauncher.json",
+  "format": 1,
+  "name": "Harvest Moon: Magical Melody",
+  "repo": "RodoLy/HMMMGC",
+  "game": {
+    "kind": "iso",
+    "label": "Your disc image of the USA GameCube release (G4AEE9): .iso, .gcm, .rvz, .wia, .gcz or .ciso.",
+    "check": { "ids": ["G4AEE9"] },
+    "dumps": [{ "name": "USA", "size": 1459978240, "crc32": "02778d03" }]
+  },
+  "prepare": {
+    "program": ["HarvestMoonMM.exe", "HarvestMoonMM", "HarvestMoonMM.app/Contents/MacOS/HarvestMoonMM"],
+    "args": ["--prepare", "{game}"],
+    "label": "The game made for your PC from your disc (a few minutes)",
+    "timeout": 3600,
+    "version": "dev",
+    "done": ["{local}/HarvestMoonMM/Native/Game/prepared.json"]
+  },
+  "start": {
+    "program": ["HarvestMoonMM.exe", "HarvestMoonMM", "HarvestMoonMM.app/Contents/MacOS/HarvestMoonMM"],
+    "args": ["--play"]
+  },
+  "exit_codes": {
+    "3": "The game is not ready for this version of the package yet. Set it up again on the game's page.",
+    "4": "The game's program could not be started. Set it up again on the game's page."
+  },
+  "config": [
+    {
+      "id": "main",
+      "format": "json",
+      "file": [{ "path": "{local}/HarvestMoonMM/settings.json" }]
+    }
+  ],
+  "groups": [{ "id": "Mods" }, { "id": "Quality of life" }, { "id": "Cheats" }],
+  "settings": [
+    {
+      "id": "language",
+      "label": "Language",
+      "help": "The language of the game's dialogues and of its menu.",
+      "choices": [
+        { "label": "English", "set": { "language": "\"en\"" } },
+        { "label": "Español", "set": { "language": "\"es\"" } },
+        { "label": "Français", "set": { "language": "\"fr\"" } },
+        { "label": "Deutsch", "set": { "language": "\"de\"" } },
+        { "label": "Italiano", "set": { "language": "\"it\"" } }
+      ],
+      "defaults": { "language": "\"en\"" }
+    },
+    {
+      "id": "resolution",
+      "label": "Resolution",
+      "help": "How many lines the game draws. 480 is the console's own; the window's follows its size.",
+      "choices": [
+        { "label": "The window's", "set": { "internalResolution": "0" } },
+        { "label": "480p", "set": { "internalResolution": "480" } },
+        { "label": "720p", "set": { "internalResolution": "720" } },
+        { "label": "1080p", "set": { "internalResolution": "1080" } },
+        { "label": "1440p", "set": { "internalResolution": "1440" } }
+      ],
+      "defaults": { "internalResolution": "0" }
+    },
+    {
+      "id": "frame_rate",
+      "label": "Frame rate",
+      "help": "30 is the console's own. 60 and 120 add frames between the game's, so it moves more smoothly.",
+      "choices": [
+        { "label": "30 fps", "set": { "frameRate": "30" } },
+        { "label": "60 fps", "set": { "frameRate": "60" } },
+        { "label": "120 fps", "set": { "frameRate": "120" } }
+      ],
+      "defaults": { "frameRate": "30" }
+    },
+    {
+      "id": "fullscreen",
+      "label": "Full screen",
+      "choices": [
+        { "label": "Off", "set": { "fullscreen": "false" } },
+        { "label": "On", "set": { "fullscreen": "true" } }
+      ],
+      "defaults": { "fullscreen": "false" }
+    },
+    {
+      "id": "widescreen",
+      "label": "Widescreen",
+      "help": "Shows more of the world at the sides, in 16:9.",
+      "choices": [
+        { "label": "Off", "set": { "widescreen": "false" } },
+        { "label": "On", "set": { "widescreen": "true" } }
+      ],
+      "defaults": { "widescreen": "false" }
+    },
+    {
+      "id": "volume",
+      "label": "Volume",
+      "slider": { "key": "volumePercent", "min": 0, "max": 100, "step": 5, "format": "%g" },
+      "defaults": { "volumePercent": "100" }
+    },
+    {
+      "id": "show_frame_rate",
+      "label": "Show frame rate",
+      "choices": [
+        { "label": "Off", "set": { "showFrameRate": "false" } },
+        { "label": "On", "set": { "showFrameRate": "true" } }
+      ],
+      "defaults": { "showFrameRate": "false" }
+    },
+    {
+      "id": "hide_touch_buttons",
+      "label": "No touch buttons with a controller",
+      "choices": [
+        { "label": "Off", "set": { "hideTouchButtons": "false" } },
+        { "label": "On", "set": { "hideTouchButtons": "true" } }
+      ],
+      "defaults": { "hideTouchButtons": "false" }
+    },
+    {
+      "id": "hide_touch_turbo",
+      "label": "No TURBO touch button",
+      "choices": [
+        { "label": "Off", "set": { "hideTouchTurbo": "false" } },
+        { "label": "On", "set": { "hideTouchTurbo": "true" } }
+      ],
+      "defaults": { "hideTouchTurbo": "false" }
+    },
+    {
+      "id": "jamie_marriage",
+      "label": "Marry Jamie",
+      "group": "Mods",
+      "help": "Marrying Jamie no longer ends the game: Jamie lives with you as your spouse.",
+      "choices": [
+        { "label": "Off", "set": { "mods/jamie_marriage": "false" } },
+        { "label": "On", "set": { "mods/jamie_marriage": "true" } }
+      ],
+      "defaults": { "mods/jamie_marriage": "false" }
+    },
+    {
+      "id": "marry_anyone",
+      "label": "Marry anyone",
+      "group": "Mods",
+      "help": "Any of the twenty partners, as the boy or as the girl.",
+      "choices": [
+        { "label": "Off", "set": { "mods/marry_anyone": "false" } },
+        { "label": "On", "set": { "mods/marry_anyone": "true" } }
+      ],
+      "defaults": { "mods/marry_anyone": "false" }
+    },
+    {
+      "id": "player_speed",
+      "label": "Faster character",
+      "group": "Quality of life",
+      "help": "The character walks and runs faster.",
+      "choices": [
+        { "label": "Off", "set": { "mods/player_speed": "false" } },
+        { "label": "On", "set": { "mods/player_speed": "true" } }
+      ],
+      "defaults": { "mods/player_speed": "false" }
+    },
+    {
+      "id": "player_speed_percent",
+      "label": "Character speed",
+      "group": "Quality of life",
+      "slider": { "key": "playerSpeedPercent", "min": 25, "max": 300, "step": 5, "format": "%g" },
+      "defaults": { "playerSpeedPercent": "100" },
+      "when": { "mods/player_speed": "true" }
+    },
+    {
+      "id": "carry_speed",
+      "label": "No slowdown when carrying",
+      "help": "The character runs even when carrying something or holding a tool.",
+      "group": "Quality of life",
+      "choices": [
+        { "label": "Off", "set": { "mods/carry_speed": "false" } },
+        { "label": "On", "set": { "mods/carry_speed": "true" } }
+      ],
+      "defaults": { "mods/carry_speed": "false" }
+    },
+    {
+      "id": "longer_days",
+      "label": "Longer days",
+      "group": "Quality of life",
+      "help": "The game's clock goes more slowly, so each day gives more time.",
+      "choices": [
+        { "label": "Off", "set": { "mods/longer_days": "false" } },
+        { "label": "On", "set": { "mods/longer_days": "true" } }
+      ],
+      "defaults": { "mods/longer_days": "false" }
+    },
+    {
+      "id": "day_length_percent",
+      "label": "Length of the day",
+      "group": "Quality of life",
+      "help": "100% is the original game's day; 200% is a day twice as long.",
+      "slider": { "key": "dayLengthPercent", "min": 100, "max": 400, "step": 25, "format": "%g" },
+      "defaults": { "dayLengthPercent": "150" },
+      "when": { "mods/longer_days": "true" }
+    },
+    {
+      "id": "gentle_stamina",
+      "label": "Gentler stamina",
+      "group": "Quality of life",
+      "help": "Tools, fishing and work spend less stamina.",
+      "choices": [
+        { "label": "Off", "set": { "mods/gentle_stamina": "false" } },
+        { "label": "On", "set": { "mods/gentle_stamina": "true" } }
+      ],
+      "defaults": { "mods/gentle_stamina": "false" }
+    },
+    {
+      "id": "stamina_cost_percent",
+      "label": "Stamina spent",
+      "group": "Quality of life",
+      "help": "100% is what the original game spends; 50% is half.",
+      "slider": { "key": "staminaCostPercent", "min": 10, "max": 100, "step": 10, "format": "%g" },
+      "defaults": { "staminaCostPercent": "50" },
+      "when": { "mods/gentle_stamina": "true" }
+    },
+    {
+      "id": "faster_tools",
+      "label": "Faster tools",
+      "group": "Quality of life",
+      "help": "The tools gain experience faster.",
+      "choices": [
+        { "label": "Off", "set": { "mods/faster_tools": "false" } },
+        { "label": "On", "set": { "mods/faster_tools": "true" } }
+      ],
+      "defaults": { "mods/faster_tools": "false" }
+    },
+    {
+      "id": "tool_experience_percent",
+      "label": "Experience of the tools",
+      "group": "Quality of life",
+      "help": "100% is the original game; 200% is twice as fast.",
+      "slider": { "key": "toolExperiencePercent", "min": 100, "max": 400, "step": 50, "format": "%g" },
+      "defaults": { "toolExperiencePercent": "200" },
+      "when": { "mods/faster_tools": "true" }
+    },
+    {
+      "id": "far_camera",
+      "label": "Farther camera",
+      "group": "Quality of life",
+      "help": "The button that pulls the camera back goes farther.",
+      "choices": [
+        { "label": "Off", "set": { "mods/far_camera": "false" } },
+        { "label": "On", "set": { "mods/far_camera": "true" } }
+      ],
+      "defaults": { "mods/far_camera": "false" }
+    },
+    {
+      "id": "cheat_infinite_stamina",
+      "label": "Infinite stamina",
+      "group": "Cheats",
+      "help": "Work spends no stamina.",
+      "choices": [
+        { "label": "Off", "set": { "cheats/infiniteStamina": "false" } },
+        { "label": "On", "set": { "cheats/infiniteStamina": "true" } }
+      ],
+      "defaults": { "cheats/infiniteStamina": "false" }
+    },
+    {
+      "id": "cheat_infinite_money",
+      "label": "Infinite money",
+      "group": "Cheats",
+      "help": "Your money stays at 999,999 G.",
+      "choices": [
+        { "label": "Off", "set": { "cheats/infiniteMoney": "false" } },
+        { "label": "On", "set": { "cheats/infiniteMoney": "true" } }
+      ],
+      "defaults": { "cheats/infiniteMoney": "false" }
+    },
+    {
+      "id": "cheat_stop_time",
+      "label": "Stop time",
+      "group": "Cheats",
+      "help": "The clock does not move; sleeping still goes on to the next day.",
+      "choices": [
+        { "label": "Off", "set": { "cheats/stopTime": "false" } },
+        { "label": "On", "set": { "cheats/stopTime": "true" } }
+      ],
+      "defaults": { "cheats/stopTime": "false" }
+    },
+    {
+      "id": "cheat_max_friendship",
+      "label": "Maximum friendship",
+      "group": "Cheats",
+      "help": "Friendship with everyone goes to the maximum, and it cannot be undone in that save: love and rival scenes may start.",
+      "choices": [
+        { "label": "Off", "set": { "cheats/maxFriendship": "false" } },
+        { "label": "On", "set": { "cheats/maxFriendship": "true" } }
+      ],
+      "defaults": { "cheats/maxFriendship": "false" }
+    }
+  ],
+  "saves": ["{local}/HarvestMoonMM/Native/USA"],
+  "folders": {
+    "saves": [{ "path": "{local}/HarvestMoonMM/Native/USA" }],
+    "logs": [{ "path": "{local}/HarvestMoonMM/Native" }]
+  },
+  "actions": [
+    { "id": "open_saves", "label": "Open the saves folder", "open": "saves" },
+    { "id": "open_logs", "label": "Open the logs folder", "open": "logs" }
+  ]
+}

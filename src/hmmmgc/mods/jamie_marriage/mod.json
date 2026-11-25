@@ -1,0 +1,22 @@
+{
+  "id": "jamie_marriage",
+  "version": "0.8.0",
+  "authors": ["HMMMGC"],
+  "name": {
+    "es": "Casarse con Jamie",
+    "en": "Marry Jamie"
+  },
+  "summary": {
+    "es": "Casarse con Jamie ya no termina el juego.",
+    "en": "Marrying Jamie no longer ends the game."
+  },
+  "description": {
+    "es": "En el juego original, la boda con Jamie es el final. Con este mod, la boda se ve y el juego sigue: Jamie vive en la casa como tu pareja, habla como tu pareja (con frases nuevas en los cinco idiomas del disco), tiene cumpleaños, y hay embarazo, parto y los días especiales del matrimonio, como con las demás parejas.",
+    "en": "In the original game, the wedding with Jamie is the ending. With this mod, the wedding plays and the game goes on: Jamie lives in the house as your spouse, talks as your spouse (with new lines in the disc's five languages), has a birthday, and there are the pregnancy, the birth and the special days of the marriage, as with the other partners."
+  },
+  "warning": {
+    "es": "Si te casaste con Jamie, esa partida lo sigue usando aunque lo desactives: Jamie sigue viviendo en la casa como tu pareja. En las demás partidas, desactivado no hace nada.",
+    "en": "If you married Jamie, that save keeps using it even if you turn it off: Jamie goes on living in the house as your spouse. In other saves, turned off it does nothing."
+  },
+  "settings": []
+}
