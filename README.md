@@ -37,7 +37,7 @@ All compiled-in mods from [RodoLy/HMMMGC](https://github.com/RodoLy/HMMMGC) are 
 
 1. Download the latest release `.zip` from the GitHub Releases page and extract it to the root of your Switch SD card.
 2. Place your own legally dumped **uncompressed** GameCube `.iso` or `.gcm` (`G4AEE9`, NTSC-U) inside `sdmc:/switch/hmmmgc-nx/` (or an extracted `game/` folder containing `sys/` and `files/`).
-   - Compressed formats (`.rvz`, `.gcz`, `.wia`, `.ciso`) are not supported directly; convert them to `.iso` in Dolphin (*Right-click game -> Convert File*).
+   - Compressed formats (`.rvz`, `.gcz`, `.wia`, `.ciso`) are not supported directly.
 
 Example SD card layout:
 
