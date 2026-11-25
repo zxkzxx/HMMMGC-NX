@@ -1,4 +1,4 @@
-# hmmmgc-nx
+# HMMMGC-NX
 
 Native Nintendo Switch port of **Harvest Moon: Magical Melody** (GameCube, NTSC-U `G4AEE9`) via static recompilation.
 
