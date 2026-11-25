@@ -1,0 +1,58 @@
+# === GAME ASSETS & COPYRIGHTED DATA (WAJIB DIABAIKAN) ===
+src/hmmmgc/orig/
+*.iso
+*.gcm
+*.rvz
+*.wia
+*.gcz
+*.ciso
+*.wbfs
+*.dol
+*.rel
+*.gci
+
+# === GENERATED TRANSLATION & EMBEDDED DOL BLOBS ===
+src/hmmmgc/build/
+**/translation/
+**/build_shards/
+**/data_sections_init.cpp
+**/data_sections_init_blobs.S
+**/blobs_elf.S
+
+# === BUILD ARTIFACTS & .NET/NUGET CACHE (TERMASUK PATH USERNAME WINDOWS) ===
+**/build/
+**/obj/
+**/bin/
+**/_deps/
+CMakeCache.txt
+CMakeFiles/
+*.o
+*.a
+*.elf
+*.nro
+*.nacp
+*.dksh
+
+# === LARGE FETCHED DEPENDENCIES ===
+deps/dawn_266c1cf8.tar.gz
+deps/dawn_src/
+
+# === LOCAL BACKUPS, LOGS & INSPECTION DUMPS ===
+*.bak_*
+*.before_*
+cek*.txt
+inspect_*.txt
+verify_*.txt
+project_inventory_audit.txt
+hmmmgc_aurora_calls.txt
+native*.log
+*.log
+s6*.py
+
+# === OS / IDE ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+patch_fixed_shaders.py
+patch_iso.py
