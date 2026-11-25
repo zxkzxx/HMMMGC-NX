@@ -1,0 +1,58 @@
+name: Bug Report
+description: Report a crash, graphical glitch, or gameplay issue in hmmmgc-nx
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please make sure you are launching via **Title Override (hold R on a game)** and using an **uncompressed `.iso` / `.gcm` (`G4AEE9` NTSC-U)**.
+        Note: this is a hobby port maintained on a best-effort basis when feedback and free time allow.
+
+  - type: dropdown
+    id: switch_model
+    attributes:
+      label: Nintendo Switch Model & Mode
+      options:
+        - Switch Lite
+        - Switch V1 / V2 (Handheld)
+        - Switch V1 / V2 (Docked)
+        - Switch OLED (Handheld)
+        - Switch OLED (Docked)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: launch_mode
+    attributes:
+      label: How did you launch Homebrew Menu?
+      options:
+        - Title Override
+        - Applet Mode
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: env_info
+    attributes:
+      label: Version, CFW/Firmware & Disc Format
+      placeholder: "e.g. hmmmgc-nx v0.1.0, Atmosphere 1.7.1, HOS 18.1.0, G4AEE9 .iso"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened & steps to reproduce
+      description: Describe the issue and where it happens in the game.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: native.log (sdmc:/switch/hmmmgc-nx/native.log)
+      description: Drag and drop your native.log file here, or paste the relevant lines.
+    validations:
+      required: false
